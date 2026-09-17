@@ -1,0 +1,13 @@
+# AutowareClass2020 - Velodyne VLP-16 Driver Configuration Parameters
+# ROS 2 Foxy / Humble compatible node configuration
+
+lidar_front:
+  velodyne_cloud_node_exe:
+    ros__parameters:
+      ip: "127.0.0.1"
+      port: 2368
+      topic: "points_raw"
+      cloud_size: 55000
+      frame_id: "lidar_front"
+      timeout_ms: 10
+      rpm: 600
