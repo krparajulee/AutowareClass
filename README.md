@@ -1,80 +1,116 @@
-# AutowareClass2020 (Modernized for ROS 2)
+# AutowareClass2020 (Modernized Native ROS 2 Edition)
 
-Updated code and notes for Lectures 1 through 6 of AutowareClass2020. The original course material was built on ROS 2 Dashing (now EOL). The code here has been updated and tested for ROS 2 Foxy / Humble.
+Updated code and notes for Lectures 1 through 6 of AutowareClass2020. All examples have been updated from the obsolete ROS 2 Dashing release to modern ROS 2 standards (Foxy / Humble) and configured to run **100% natively on Linux / WSL without Docker or ADE**.
 
 ---
 
-## Environment Setup
+## Native Environment Setup (No Docker Required)
 
-### System Requirements
-- Ubuntu 18.04 / 20.04 (Native or WSL 2 on Windows)
-- Docker
-- ADE (Awesome Development Environment)
+This repository runs directly on your host operating system using standard ROS 2 packages and `colcon`.
 
-### 1. WSL 2 Setup (Windows users)
-If on Windows 10/11, install Ubuntu in PowerShell (Admin):
+### Supported Systems
+- **Ubuntu Linux** (20.04 LTS for Foxy, 22.04 LTS for Humble)
+- **Windows 10/11 with WSL 2** (Ubuntu distribution)
+
+---
+
+### 1. Windows WSL 2 Setup (Windows Users Only)
+
+If you are using Windows, open PowerShell as Administrator and install Ubuntu:
+
 ```powershell
-wsl --install -d Ubuntu-18.04
+wsl --install -d Ubuntu-20.04
 ```
 
-### 2. Docker Installation
-In Ubuntu/WSL:
+After rebooting, launch Ubuntu from your Start menu and complete user setup.
+
+---
+
+### 2. Native ROS 2 Installation (Ubuntu / WSL)
+
+Run the following in your Ubuntu terminal to install ROS 2:
+
 ```bash
-sudo apt update && sudo apt install -y curl git wget build-essential
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-newgrp docker
-```
+# Set locale
+sudo apt update && sudo apt install -y locales curl gnupg2 lsb-release build-essential
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 
-### 3. ADE Setup
-```bash
-cd ${HOME}
-mkdir -p adehome && cd adehome
+# Add ROS 2 repository
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-wget https://gitlab.com/ApexAI/ade-cli/uploads/85a5af81339fe55555ee412f9a3a734b/ade+x86_64
-mv ade+x86_64 ade
-chmod +x ade
-mkdir -p ~/.local/bin && mv ade ~/.local/bin/
-
-echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc
-source ~/.bashrc
-
-touch .adehome
-git clone --recurse-submodules https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto.git
-cd AutowareAuto/
-ade start
-ade enter
-```
-
-### 4. ROS Key Update & Package Install
-Inside ADE (`krp@ade:~$`):
-```bash
-curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | sudo apt-key add -
+# Install ROS 2 and developer build tools
 sudo apt update
-source /opt/ros/foxy/setup.bash
-sudo apt install -y ros-foxy-turtlesim ros-foxy-rqt* byobu
+# For Ubuntu 20.04:
+sudo apt install -y ros-foxy-desktop python3-colcon-common-extensions python3-rosdep ros-foxy-turtlesim ros-foxy-rqt*
+# (Or on Ubuntu 22.04: replace foxy with humble)
+
+# Automatically source ROS 2 in every terminal session
+echo "source /opt/ros/foxy/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
 
-### 5. Verification Test
-Terminal 1:
+---
+
+### 3. Verify Native ROS 2 Installation
+
+Open two terminal windows:
+
+**Terminal 1:**
 ```bash
-source /opt/ros/foxy/setup.bash
 ros2 run demo_nodes_cpp talker
 ```
-Terminal 2:
+
+**Terminal 2:**
 ```bash
-source /opt/ros/foxy/setup.bash
 ros2 run demo_nodes_cpp listener
 ```
+
+If you see `Publishing: 'Hello World'` in Terminal 1 and `I heard: [Hello World]` in Terminal 2, your native ROS 2 environment is working.
 
 ---
 
 ## Repository Structure
 
-- [`Chapter_01_DevelopmentEnvironment`](./Chapter_01_DevelopmentEnvironment): Fixed launch syntax (`--ros-args -r __ns:=...`) and LiDAR object detection demo.
-- [`Chapter_02_ROS2_Basics`](./Chapter_02_ROS2_Basics): ROS 2 primitives (Topics, Services, Actions) in C++ and Python with working CMake setup.
-- [`Chapter_03_ROS_Tooling`](./Chapter_03_ROS_Tooling): Command line tools, RQT, Byobu, and rosbag2 scripts.
-- [`Chapter_04_Platform`](./Chapter_04_Platform): CycloneDDS and FastDDS profiles, plus real-time C++ node example (`mlockall`, `SCHED_FIFO`).
-- [`Chapter_05_Architectures`](./Chapter_05_Architectures): Modular AD architecture using composable nodes (`rclcpp_components`) and Python launch files.
-- [`Chapter_06_Autoware_101`](./Chapter_06_Autoware_101): Lifecycle managed node (`rclcpp_lifecycle`) implementation and transition launch script.
+Every chapter is a self-contained, native ROS 2 package ready for `colcon build`:
+
+| Chapter | Topic | What's Included |
+| :--- | :--- | :--- |
+| [**Chapter 01**](./Chapter_01_DevelopmentEnvironment/) | **Environment & LiDAR Demo** | Updated `--ros-args` CLI remappings, LiDAR pipeline script, sensor parameters, and RViz config. |
+| [**Chapter 02**](./Chapter_02_ROS2_Basics/) | **ROS 2 Basics (C++ & Python)** | Standalone nodes for Topics, Services, Actions, and parameters with CMake build files. |
+| [**Chapter 03**](./Chapter_03_ROS_Tooling/) | **ROS 2 CLI & Tooling** | Command-line introspection scripts, RQT, and native sqlite3 rosbag recording/replay. |
+| [**Chapter 04**](./Chapter_04_Platform/) | **Platform, DDS & Real-Time** | CycloneDDS and FastDDS profiles, plus a compilable real-time C++ node (`mlockall`, `SCHED_FIFO`). |
+| [**Chapter 05**](./Chapter_05_Architectures/) | **Modular AD Stack Architecture** | Composable intra-process component nodes (`rclcpp_components`) and container launch file. |
+| [**Chapter 06**](./Chapter_06_Autoware_101/) | **Autoware 101 & Lifecycle Nodes** | Managed Lifecycle Node (`rclcpp_lifecycle`) and state transition launch file. |
+
+---
+
+## How to Build and Run Any Chapter
+
+1. Clone this repository into your workspace:
+```bash
+mkdir -p ~/autoware_ws/src
+cd ~/autoware_ws/src
+git clone https://github.com/krparajulee/AutowareClass.git
+```
+
+2. Build all chapters simultaneously with `colcon`:
+```bash
+cd ~/autoware_ws
+colcon build --symlink-install
+source install/setup.bash
+```
+
+3. Run individual nodes or launch files directly:
+```bash
+# Example: Run Chapter 2 Action Server
+ros2 run ros2_basics_demo action_server
+
+# Example: Run Chapter 5 Architecture Container
+ros2 launch autoware_architecture_demo autoware_architecture.launch.py
+
+# Example: Run Chapter 6 Lifecycle Node
+ros2 launch autoware_lifecycle_demo lifecycle_demo.launch.py
+```
